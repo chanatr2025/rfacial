@@ -1,0 +1,66 @@
+{% extends 'layout.html' %} {% block content %}
+<h2>Gestión de Cursos</h2>
+<form id="formCurso" class="mb-4">
+  <div class="mb-3">
+    <label for="course_name" class="form-label">Nombre del Curso</label>
+    <input
+      type="text"
+      class="form-control"
+      id="course_name"
+      name="course_name"
+      required
+    />
+  </div>
+  <div class="mb-3">
+    <label for="schedule" class="form-label"
+      >Descripción de Horario (opcional)</label
+    >
+    <input type="text" class="form-control" id="schedule" name="schedule" />
+  </div>
+  <div class="mb-3">
+    <label for="teacher_id" class="form-label">Asignar Docente</label>
+    <select class="form-select" id="teacher_id" name="teacher_id">
+      <option value="">-- Seleccionar Docente --</option>
+      {% for docente in docentes %}
+      <option value="{{ docente[0] }}">{{ docente[1] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Agregar Curso</button>
+</form>
+
+<h3>Listado de Cursos</h3>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Curso</th>
+      <th>Descripción</th>
+      <th>Docente</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for curso in cursos %}
+    <tr>
+      <td>{{ curso[0] }}</td>
+      <td>{{ curso[1] }}</td>
+      <td>{{ curso[2] }}</td>
+      <td>{{ curso[3] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  document.getElementById("formCurso").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var formData = new FormData(this);
+    fetch("/cursos", { method: "POST", body: formData })
+      .then((response) => response.json())
+      .then((data) => {
+        alert(data.mensaje);
+        location.reload();
+      });
+  });
+</script>
+{% endblock %}

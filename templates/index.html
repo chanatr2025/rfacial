@@ -1,0 +1,66 @@
+{% extends 'layout.html' %} {% block content %}
+<h2>Registro de Asistencia</h2>
+<div class="mb-4">
+  <label for="courseSelect" class="form-label">Seleccione Curso</label>
+  <select id="courseSelect" class="form-select w-50">
+    {% for curso in cursos %}
+    <option value="{{ curso[0] }}">{{ curso[1] }}</option>
+    {% endfor %}
+  </select>
+</div>
+<div class="mb-3">
+  <button class="btn btn-success" onclick="registrarAsistencia('Ingreso')">
+    Registrar Ingreso
+  </button>
+  <button class="btn btn-warning" onclick="registrarAsistencia('Salida')">
+    Registrar Salida
+  </button>
+  <button class="btn btn-danger" onclick="cerrarCamara()">Cerrar Cámara</button>
+</div>
+
+<h3>Historial de Asistencias</h3>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Curso</th>
+      <th>Fecha</th>
+      <th>Tipo</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for asistencia in asistencias %}
+    <tr>
+      <td>{{ asistencia[0] }}</td>
+      <td>{{ asistencia[1] }}</td>
+      <td>{{ asistencia[2] }}</td>
+      <td>{{ asistencia[3] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  function registrarAsistencia(tipo) {
+    var courseId = document.getElementById("courseSelect").value;
+    var formData = new FormData();
+    formData.append("course_id", courseId);
+    formData.append("attendance_type", tipo);
+    fetch("/reconocimiento", { method: "POST", body: formData })
+      .then((response) => response.json())
+      .then((data) => {
+        alert(data.mensaje);
+        location.reload();
+      });
+  }
+
+  function cerrarCamara() {
+    fetch("/cerrar_camara", { method: "POST" })
+      .then((response) => response.json())
+      .then((data) => {
+        alert(data.mensaje);
+        location.reload();
+      });
+  }
+</script>
+{% endblock %}

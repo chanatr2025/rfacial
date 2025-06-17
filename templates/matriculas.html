@@ -1,0 +1,37 @@
+{% extends 'layout.html' %} {% block content %}
+<h2>Gestión de Matrículas</h2>
+<form id="formMatricula" class="mb-4">
+  <div class="mb-3">
+    <label for="student_id" class="form-label">Estudiante</label>
+    <select class="form-select" id="student_id" name="student_id" required>
+      {% for estudiante in estudiantes %}
+      <option value="{{ estudiante[0] }}">{{ estudiante[1] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label for="course_id" class="form-label">Curso</label>
+    <select class="form-select" id="course_id" name="course_id" required>
+      {% for curso in cursos %}
+      <option value="{{ curso[0] }}">{{ curso[1] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Matricular</button>
+</form>
+
+<script>
+  document
+    .getElementById("formMatricula")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      var formData = new FormData(this);
+      fetch("/matriculas", { method: "POST", body: formData })
+        .then((response) => response.json())
+        .then((data) => {
+          alert(data.mensaje);
+          location.reload();
+        });
+    });
+</script>
+{% endblock %}

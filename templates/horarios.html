@@ -1,0 +1,85 @@
+{% extends 'layout.html' %} {% block content %}
+<h2>Gestión de Horarios Semanales</h2>
+<form id="formHorario" class="mb-4">
+  <div class="mb-3">
+    <label for="course_id" class="form-label">Curso</label>
+    <select class="form-select" id="course_id" name="course_id" required>
+      {% for curso in cursos %}
+      <option value="{{ curso[0] }}">{{ curso[1] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label for="day_of_week" class="form-label">Día de la Semana</label>
+    <select class="form-select" id="day_of_week" name="day_of_week" required>
+      <option value="Monday">Lunes</option>
+      <option value="Tuesday">Martes</option>
+      <option value="Wednesday">Miércoles</option>
+      <option value="Thursday">Jueves</option>
+      <option value="Friday">Viernes</option>
+      <option value="Saturday">Sábado</option>
+      <option value="Sunday">Domingo</option>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label for="start_time" class="form-label">Hora de Inicio</label>
+    <input
+      type="time"
+      class="form-control"
+      id="start_time"
+      name="start_time"
+      required
+    />
+  </div>
+  <div class="mb-3">
+    <label for="end_time" class="form-label">Hora de Fin</label>
+    <input
+      type="time"
+      class="form-control"
+      id="end_time"
+      name="end_time"
+      required
+    />
+  </div>
+  <button type="submit" class="btn btn-primary">Agregar Horario</button>
+</form>
+
+<h3>Listado de Horarios</h3>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Curso</th>
+      <th>Día</th>
+      <th>Inicio</th>
+      <th>Fin</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for horario in horarios %}
+    <tr>
+      <td>{{ horario[0] }}</td>
+      <td>{{ horario[1] }}</td>
+      <td>{{ horario[2] }}</td>
+      <td>{{ horario[3] }}</td>
+      <td>{{ horario[4] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  document
+    .getElementById("formHorario")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      var formData = new FormData(this);
+      fetch("/horarios", { method: "POST", body: formData })
+        .then((response) => response.json())
+        .then((data) => {
+          alert(data.mensaje);
+          location.reload();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'layout.html' %} {% block content %}
+<h2>Dashboard de Estudiante</h2>
+<h4>Mis Cursos</h4>
+<ul class="list-group mb-4">
+  {% for course in courses %}
+  <li class="list-group-item">{{ course[1] }}</li>
+  {% endfor %}
+</ul>
+<h4>Historial de Asistencias</h4>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Curso</th>
+      <th>Fecha</th>
+      <th>Tipo</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for asistencia in asistencias %}
+    <tr>
+      <td>{{ asistencia[1] }}</td>
+      <td>{{ asistencia[2] }}</td>
+      <td>{{ asistencia[3] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
