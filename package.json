@@ -1,0 +1,26 @@
+{
+  "name": "rfacial",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tailwindcss -i ./src/input.css -o ./app/static/style.css --minify",
+    "dev": "npx tailwindcss -i ./src/input.css -o ./app/static/style.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chanatr2025/rfacial.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/chanatr2025/rfacial/issues"
+  },
+  "homepage": "https://github.com/chanatr2025/rfacial#readme",
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

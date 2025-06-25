@@ -1,0 +1,7 @@
+venv
+.env
+/node_modules
+/migrations
+__pycache__
+/dataset/*
+!/dataset/*.pkl

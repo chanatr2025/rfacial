@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;400;500;600;700&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+	<link href="/static/style.css" rel="stylesheet">
+	<style>
+		[x-cloak] {
+			display: none !important;
+		}
+	</style>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+	<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+	<!-- jQuery (versión ligera) -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+	<script>
+		toastr.options = {
+			"closeButton": true,
+			"progressBar": true,
+			"positionClass": "toast-top-right",
+			"timeOut": "4000"
+		};
+	</script>
+</head>
+<body class="bg-gray-200/70">
+	{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          {% for category, message in messages %}
+						{% if category == 'success' %}
+							toastr.success("{{ message }}");
+						{% elif category == 'info' %}
+							toastr.info("{{ message }}");
+						{% elif category == 'warning' %}
+							toastr.warning("{{ message }}");
+						{% else %}
+							toastr.error("{{ message }}");
+						{% endif %}
+          {% endfor %}
+        });
+      </script>
+    {% endif %}
+  {% endwith %}
+	<div class="app-wrap" x-data="{ sidebarOpen: true }">
+		<div class="[grid-area:sidebar] app-sidenav" :class="{'sidenav-open': sidebarOpen, 'sidenav-contracted': !sidebarOpen}" x-ref="sidebar">
+			<div class="h-[48px] flex items-center justify-center">
+				<a href="/" class="sidenav-brand">
+					<span class="sidenav-brand-text text-lg font-bold">SIS<span class="text-blue-600">ASIS</span></span>
+				</a>
+			</div>
+			<ul class="sidenav-body">
+				<li>
+					<a
+						class="sidenav-item {{'active' if request.path == '/' else ''}}"
+						href="/"
+					>
+						<i class="icon fa-solid fa-house"></i>
+						<span class="item-text">Inicio</span>
+					</a>
+				</li>
+				{% if current_user.role == 'admin' %}
+				<li>
+					<a
+						class="sidenav-item {{'active' if request.path == '/users/' else ''}}"
+						href="/users"
+					>
+						<i class="icon fa-solid fa-users"></i>
+						<span class="item-text">Usuarios</span>
+					</a>
+				</li>
+				<li>
+					<a
+						class="sidenav-item {{'active' if request.path == '/courses/' else ''}}"
+						href="/courses"
+					>
+						<i class="icon fa-solid fa-book"></i>
+						<span class="item-text">Cursos</span>
+					</a>
+				</li>
+				<li>
+					<a
+						class="sidenav-item {{'active' if request.path == '/enrollments/' else ''}}"
+						href="/enrollments"
+					>
+						<i class="icon fa-solid fa-book"></i>
+						<span class="item-text">Matrícula</span>
+					</a>
+				</li>
+				{% endif %}
+				<!-- <li x-data="{ open: false }">
+					<a
+						class="sidenav-item {{'active' if request.path == '/users' else ''}}"
+						href="#"
+						@click.prevent="open = !open"
+					>
+						<i class="icon fa-solid fa-users"></i>
+						<span class="item-text">Mantenimientos</span>
+						<i class="icon fa-solid fa-chevron-down ml-auto transition-all" :class="{'rotate-90': open}"></i>
+					</a>
+					<ul class="sub-menu" x-show="open" x-cloak>
+						<li>
+							<a
+								class="sidenav-item {{'active' if request.path == '/courses' else ''}}"
+								href="/courses"
+							>
+								<i class="icon fa-solid fa-book"></i>
+								<span class="item-text">Cursos</span>
+							</a>
+						</li>
+						<li>
+							<a
+								class="sidenav-item {{'active' if request.path == '/schedules' else ''}}"
+								href="/schedules"
+							>
+								<i class="icon fa-solid fa-clock"></i>
+								<span class="item-text">Horarios</span>
+							</a>
+						</li>
+					</ul>
+				</li> -->
+			</ul>
+		</div>
+		<div class="[grid-area:header]">
+			<header class="app-header">
+				<button
+					class="text-gray-500 hover:text-gray-600 flex items-center"
+					@click="sidebarOpen = !sidebarOpen"
+					aria-label="Toggle sidebar"
+					aria-controls="sidebar"
+				>
+					<span class="sr-only">Toggle sidebar</span>
+					<i class="fa-solid fa-bars text-base"></i>
+				</button>
+				<ul class="header-content">
+					<li class="user-dropdown" x-data="{ showUserMenu: false }">
+						<a href="javascript:void(0)" class="gap-x-4" id="app-user-menu-button" @click="showUserMenu = !showUserMenu">
+							<span>{{current_user.name}}</span>
+							<div class="size-8 flex items-center justify-center">
+								<i class="fa-regular fa-circle-user text-2xl"></i>
+							</div>
+						</a>
+						<ul
+							class="user-dropdown-menu"
+							x-show="showUserMenu"
+							@click.outside="showUserMenu = false"
+							x-cloak
+						>
+							<li>
+								<form action="/auth/logout" method="POST" class="hidden" id="frm_logout"></form>
+								<button type="submit" form="frm_logout" class="user-dropdown-menu-item w-full text-start">Cerrar sesión</button>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</header>
+		</div>
+		<div class="overflow-y-auto [grid-area:main] custom-scroll custom-scroll-lg relative">
+			<div class="px-3 pt-3 pb-2 min-h-full w-full">
+				{% block content %}{% endblock %}
+			</div>
+		</div>
+	</div>
+</body>
+</html>

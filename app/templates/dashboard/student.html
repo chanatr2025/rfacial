@@ -1,0 +1,58 @@
+{% extends 'layouts/admin-layout.html' %} {% block content %}
+<div class="flex flex-col gap-3">
+	<h2 class="text-xl font-bold flex items-center gap-2">
+		<i class="fa-solid fa-graduation-cap"></i>
+		Cursos Matriculados
+	</h2>
+	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+		{% for course in courses %}
+		<div class="bg-white rounded-lg shadow p-4">
+			<h3 class="text-lg font-semibold text-blue-800">{{ course.name }}</h3>
+			<p class="text-gray-600">Docente: {{ course.teacher.name if course.teacher else 'No asignado' }}</p>
+		</div>
+		{% else %}
+		<p class="text-gray-500">No tienes cursos matriculados.</p>
+		{% endfor %}
+	</div>
+	<h2 class="text-xl font-bold flex items-center gap-2">
+		<i class="fa-solid fa-calendar-check"></i>
+		Registro de Asistencia
+	</h2>
+	<div class="bg-white rounded-lg shadow p-4">
+		{% if attendances %}
+		<table class="table w-full">
+			<thead>
+				<tr>
+					<th>Curso</th>
+					<th>Estudiante</th>
+					<th>Fecha</th>
+					<th>Hora</th>
+					<th>Estado</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for record in attendances %}
+				<tr>
+					<td>{{ record.course.name }}</td>
+					<td>{{ record.user.name }}</td>
+					<td>{{ record.register_date.strftime('%d/%m/%Y') }}</td>
+					<td>{{ record.register_date.strftime('%H:%M') }}</td>
+					<td>
+						{% if record.type == 'Ingreso' %}
+						<span class="text-green-600">Ingreso</span>
+						{% elif record.type == 'Salida' %}
+						<span class="text-red-600">Salida</span>
+						{% else %}
+						<span class="text-gray-600">Desconocido</span>
+						{% endif %}
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p class="text-gray-500">No hay registros de asistencia.</p>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

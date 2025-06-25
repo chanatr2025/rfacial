@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="/static/style.css" rel="stylesheet">
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;400;500;600;700&display=swap" rel="stylesheet" />
+
+	<title>Iniciar sesión | Ssistema de asistencia</title>
+</head>
+
+<body>
+    <div class="h-screen w-full">
+		<div class="bg-gray-50">
+			<div class="min-h-screen flex flex-col items-center justify-center py-6 px-4">
+				<div class="max-w-[480px] w-full">
+					<p class="text-lg font-bold text-center">SIS<span class="text-blue-600">ASIS</span></p>
+
+					<div class="p-6 sm:p-8 rounded-2xl bg-white border border-gray-200 shadow-sm">
+						{% block content %}{% endblock %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
