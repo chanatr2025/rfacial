@@ -15,6 +15,39 @@ from io import BytesIO
 
 attendance_bp = Blueprint('attendance', __name__, url_prefix='/attendance')
 VIDEO_URL = 0
+camera_active = False  # Global o en módulo
+
+@attendance_bp.route('/camera_feed')
+@login_required
+def camera_feed():
+	global camera_active
+	camera_active = True
+	print('por que entra aqui')
+
+	def generate_frames():
+		cap = cv2.VideoCapture(VIDEO_URL)
+		while camera_active:
+			success, frame = cap.read()
+			if not success:
+				break
+			else:
+				# Codifica la imagen en formato JPEG
+				_, buffer = cv2.imencode('.jpg', frame)
+				frame = buffer.tobytes()
+
+			# Devuelve el frame como parte del stream
+			yield (b'--frame\r\n'
+				b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+		cap.release()
+
+	return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@attendance_bp.route('/stop_camera', methods=['POST'])
+@login_required
+def stop_camera():
+	global camera_active
+	camera_active = False
+	return jsonify({'message': 'Cámara detenida'}), 200
 
 @attendance_bp.route('/take/<course_id>', methods=['POST'])
 @login_required
@@ -42,13 +75,13 @@ def take_attendance(course_id):# json request
 		# Convert the frame to RGB format for DeepFace
 		frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 		# Save the frame to a temporary file
-		temp_frame_path = 'temp_frame.jpg'
-		cv2.imwrite(temp_frame_path, frame_rgb)
+		# temp_frame_path = 'temp_frame.jpg'
+		# cv2.imwrite(temp_frame_path, frame_rgb)
 		# Suppress DeepFace output
 		sys.stdout = open(os.devnull, 'w')
 		# Perform facial recognition
 		results = DeepFace.find(
-			img_path=frame,
+			img_path=frame_rgb,
 			db_path='dataset',
 			model_name='Facenet512',  # Puedes cambiar el modelo si lo deseas
 			enforce_detection=False,
@@ -100,7 +133,12 @@ def take_attendance(course_id):# json request
 
 		db.session.commit()
 		# Send the Excel file as a response
-		return send_file(excel_path, as_attachment=True, download_name=f'attendance_{course_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx')
+		return send_file(
+    	output,
+    	as_attachment=True,
+  		download_name=f'attendance_{course_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx',
+			mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 	except Exception as e:
 		db.session.rollback()
 		print(f"Error al tomar asistencia: {e}")

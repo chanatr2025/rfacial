@@ -45,10 +45,40 @@
 				<option value="Ingreso">Ingreso</option>
 				<option value="Salida">Salida</option>
 			</select>
-			<button type="button" class="btn btn-primary" @click="registerAttendance()" x-bind:disabled="loading">
+			<button type="button" class="btn btn-primary" @click="openPreviewModal()" x-bind:disabled="loading">
 				<i class="fa-solid" x-bind:class="loading ? 'fa-spinner fa-spin' : 'fa-check'"></i>
 				Registrar
 			</button>
+			<!-- Modal de cámara con stream MJPEG -->
+			<div
+				class="fixed inset-0 bg-black bg-opacity-50 flex flex-col z-[99] px-1 sm:px-8 py-1 sm:py-8 overflow-y-auto"
+				x-show="showModal"
+				x-transition:enter="transition ease-out duration-300"
+				x-transition:enter-start="opacity-0"
+				x-transition:enter-end="opacity-100"
+				x-transition:leave="transition ease-in duration-200"
+				x-transition:leave-start="opacity-100"
+				x-transition:leave-end="opacity-0"
+				x-cloak
+			>
+				<div class="bg-white w-full rounded-md shadow-lg mx-auto my-auto max-w-2xl py-2 px-4">
+					<div class="flex items-center justify-end pb-2">
+						<button type="button" class="cursor-pointer focus:outline-none" @click="closePreviewModal()">
+							<i class="fa-solid fa-xmark text-lg"></i>
+						</button>
+					</div>
+
+					<!-- Aquí se muestra el stream -->
+					<div class="flex justify-center">
+						<img id="cameraPreview" class="rounded border w-auto max-h-96" x-bind:src="imgSrc" />
+					</div>
+
+					<div class="flex justify-end mt-4 gap-2">
+						<button class="btn btn-secondary" @click="closePreviewModal()">Cancelar</button>
+						<button class="btn btn-primary" @click="registerAttendance()">Registrar Asistencia</button>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 	<h2 class="text-xl font-bold flex items-center gap-2">
@@ -95,51 +125,71 @@
 <script>
 	document.addEventListener('alpine:init', () => {
     Alpine.data('attendance', () => ({
-		courseId: null,
-		type: 'Ingreso',
-		loading: false,
-		registerAttendance() {
-			if (!this.courseId) {
-				toastr.error('Por favor, selecciona un curso.');
-				return;
-			}
-
-			const url = `/attendance/take/${this.courseId}`;
-			this.loading = true;
-			fetch(url, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ state: this.type })
-			}).then(async res => {
-				this.loading = false;
-				if (res.ok) {
-					return {
-						fileName: res.headers.get('Content-Disposition').split('filename=')[1],
-						blob: res.blob()
-					};
-				} else {
-					const resp = await res.json();
-					if (resp.error) {
-						throw new Error(resp.error);
-					} else {
-						throw new Error('Error al registrar asistencia.');
-					}
+			courseId: null,
+			type: 'Ingreso',
+			loading: false,
+			showModal: false,
+			imgSrc: null,
+			registerAttendance() {
+				if (!this.courseId) {
+					toastr.error('Por favor, selecciona un curso.');
+					return;
 				}
-			}).then(({ fileName, blob }) => {
-				const url = window.URL.createObjectURL(blob);
-				const a = document.createElement('a');
-				a.href = url;
-				a.download = fileName;
-				document.body.appendChild(a);
-				a.click();
-				a.remove();
-				toastr.success('Asistencia registrada y descargada exitosamente.');
-			}).catch(error => {
-				toastr.error(error.message || 'Error al registrar asistencia.');
-			})
-		}
+
+				this.closePreviewModal()
+
+				const url = `/attendance/take/${this.courseId}`;
+				this.loading = true;
+				fetch(url, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ state: this.type })
+				}).then(async res => {
+					this.loading = false;
+					if (res.ok) {
+						return {
+							fileName: res.headers.get('Content-Disposition').split('filename=')[1],
+							blob: await res.blob()
+						};
+					} else {
+						const resp = await res.json();
+						if (resp.error) {
+							throw new Error(resp.error);
+						} else {
+							throw new Error('Error al registrar asistencia.');
+						}
+					}
+				}).then(({ fileName, blob }) => {
+					const url = window.URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = fileName;
+					document.body.appendChild(a);
+					a.click();
+					a.remove();
+					toastr.success('Asistencia registrada y descargada exitosamente.');
+					window.location.reload()
+				}).catch(error => {
+					toastr.error(error.message || 'Error al registrar asistencia.');
+				})
+			},
+			openPreviewModal() {
+				if (!this.courseId) {
+					toastr.error('Por favor, selecciona un curso.');
+					return;
+				}
+
+				this.imgSrc = '/attendance/camera_feed'
+
+				this.showModal = true;
+			},
+			async closePreviewModal() {
+				this.imgSrc = ''
+				this.showModal = false
+				await fetch('/attendance/stop_camera', { method: 'POST' })
+			}
 		}))
 	})
 </script>
