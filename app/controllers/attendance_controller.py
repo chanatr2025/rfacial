@@ -12,9 +12,9 @@ from app.models.attendance import Attendance
 from app.models.enrollment import Enrollment
 import pandas as pd
 from io import BytesIO
+from app import VIDEO_URL
 
 attendance_bp = Blueprint('attendance', __name__, url_prefix='/attendance')
-VIDEO_URL = 0
 camera_active = False  # Global o en módulo
 
 @attendance_bp.route('/camera_feed')

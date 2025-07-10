@@ -679,8 +679,8 @@ video {
   height: 2rem;
 }
 
-.h-24 {
-  height: 6rem;
+.h-28 {
+  height: 7rem;
 }
 
 .h-4 {
@@ -695,18 +695,6 @@ video {
   height: 100vh;
 }
 
-.h-32 {
-  height: 8rem;
-}
-
-.h-28 {
-  height: 7rem;
-}
-
-.h-\[45px\] {
-  height: 45px;
-}
-
 .max-h-96 {
   max-height: 24rem;
 }
@@ -717,10 +705,6 @@ video {
 
 .min-h-screen {
   min-height: 100vh;
-}
-
-.w-24 {
-  width: 6rem;
 }
 
 .w-4 {
@@ -1924,6 +1908,45 @@ textarea.form-control.no-resize {
       background-color: rgb(202 138 4 / var(--tw-bg-opacity, 1));
     }
   }
+  &.btn-primary-outline {
+    border-width: 1px;
+  }
+  &.btn-primary-outline {
+    --tw-border-opacity: 1;
+    border-color: rgb(124 58 237 / var(--tw-border-opacity, 1));
+  }
+  &.btn-primary-outline {
+    background-color: transparent;
+  }
+  &.btn-primary-outline {
+    --tw-text-opacity: 1;
+    color: rgb(124 58 237 / var(--tw-text-opacity, 1));
+  }
+  &.btn-primary-outline:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgb(245 243 255 / var(--tw-bg-opacity, 1));
+  }
+  &.btn-primary-outline:focus {
+    --tw-bg-opacity: 1;
+    background-color: rgb(245 243 255 / var(--tw-bg-opacity, 1));
+  }
+  &.btn-primary-outline:active {
+    --tw-bg-opacity: 1;
+    background-color: rgb(237 233 254 / var(--tw-bg-opacity, 1));
+  }
+  &.btn-primary-outline:disabled {
+    --tw-bg-opacity: 1;
+    background-color: rgb(209 213 219 / var(--tw-bg-opacity, 1));
+  }
+  &.btn-primary-outline:disabled {
+    --tw-text-opacity: 1;
+    color: rgb(31 41 55 / var(--tw-text-opacity, 1));
+  }
+  &.btn-primary-outline {
+    &.loading:not(:disabled) {
+      background-color: transparent;
+    }
+  }
   &.btn-info {
     --tw-bg-opacity: 1;
     background-color: rgb(8 145 178 / var(--tw-bg-opacity, 1));
@@ -1957,6 +1980,18 @@ textarea.form-control.no-resize {
       --tw-bg-opacity: 1;
       background-color: rgb(8 145 178 / var(--tw-bg-opacity, 1));
     }
+  }
+  &.btn-sm {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  &.btn-sm {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+  &.btn-sm {
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
 }
 
@@ -2196,6 +2231,10 @@ table.table {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .sm\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .sm\:p-8 {
     padding: 2rem;
   }
@@ -2220,5 +2259,9 @@ table.table {
 @media (min-width: 1024px) {
   .lg\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lg\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }

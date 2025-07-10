@@ -13,8 +13,8 @@ db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
-VIDEO_URL = 0  # Default video source, can be changed later
-
+# URL de la cámara IP (modifica según tu configuración)
+VIDEO_URL = 0 # "http://192.168.56.37:8080/video"
 def create_app():
 	load_dotenv()
 

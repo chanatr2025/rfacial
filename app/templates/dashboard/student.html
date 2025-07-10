@@ -17,7 +17,32 @@
 	<h2 class="text-xl font-bold flex items-center gap-2">
 		<i class="fa-solid fa-calendar-check"></i>
 		Registro de Asistencia
+		<button class="btn btn-primary-outline btn-sm" onclick="window.location.href='/download-attendance'">
+			<i class="fa-solid fa-file-excel text-sm"></i> Descargar Asistencia
+		</button>
 	</h2>
+	<form class="bg-white rounded-lg shadow p-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+		<div>
+			<label for="course" class="form-label">Curso</label>
+			<select name="course" id="course" class="form-control">
+				<option value="">Todos los cursos</option>
+				{% for course in courses %}
+				<option value="{{ course.id }}" {% if course.id == course_id %}selected{% endif %}>{{ course.name }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div>
+			<label for="begin_date" class="form-label">Fecha de inicio</label>
+			<input type="date" name="begin_date" id="begin_date" class="form-control" value="{{ begin_date.strftime('%Y-%m-%d') if begin_date else '' }}" />
+		</div>
+		<div>
+			<label for="end_date" class="form-label">Fecha de fin</label>
+			<input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}" />
+		</div>
+		<div class="flex justify-end items-end">
+			<button type="submit" class="btn btn-primary">Filtrar</button>
+		</div>
+	</form>
 	<div class="bg-white rounded-lg shadow p-4">
 		{% if attendances %}
 		<table class="table w-full">
