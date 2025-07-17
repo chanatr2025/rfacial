@@ -9,10 +9,10 @@
 			<button type="submit" class="btn btn-primary">Guardar</button>
 		</div>
 	</form>
-	<h2 class="text-xl font-bold flex items-center gap-2">
+	<h2 class="text-xl font-bold flex items-center gap-2" x-data="downloadHandler">
 		<i class="fa-solid fa-calendar-check"></i>
 		Registro de Asistencia
-		<button class="btn btn-primary-outline btn-sm" onclick="window.location.href='/download-attendance'">
+		<button class="btn btn-primary-outline btn-sm" @click="download()">
 			<i class="fa-solid fa-file-excel text-sm"></i> Descargar Asistencia
 		</button>
 	</h2>
@@ -23,6 +23,15 @@
 				<option value="">Todos los cursos</option>
 				{% for course in courses %}
 				<option value="{{ course.id }}" {% if course.id == course_id %}selected{% endif %}>{{ course.name }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div>
+			<label for="student" class="form-label">Estudiante</label>
+			<select name="student" id="student" class="form-control">
+				<option value="">Todos los estudiantes</option>
+				{% for student in students %}
+				<option value="{{ student.id }}" {% if student.id == student_id %}selected{% endif %}>{{ student.name }}</option>
 				{% endfor %}
 			</select>
 		</div>
@@ -77,4 +86,25 @@
 		{% endif %}
 	</div>
 </div>
+<script>
+	document.addEventListener('alpine:init', () => {
+    Alpine.data('downloadHandler', () => ({
+			download() {
+				const url = '/download-attendance';
+				const courseId = document.getElementById('course').value;
+				const studentId = document.getElementById('student').value;
+				const beginDate = document.getElementById('begin_date').value;
+				const endDate = document.getElementById('end_date').value;
+
+				const params = new URLSearchParams();
+				if (courseId) params.append('course', courseId);
+				if (beginDate) params.append('begin_date', beginDate);
+				if (endDate) params.append('end_date', endDate);
+				if (studentId) params.append('student', studentId);
+
+				window.location.href = `${url}?${params.toString()}`;
+			}
+		}));
+	})
+</script>
 {% endblock %}
