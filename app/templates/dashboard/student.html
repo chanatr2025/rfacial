@@ -14,10 +14,10 @@
 		<p class="text-gray-500">No tienes cursos matriculados.</p>
 		{% endfor %}
 	</div>
-	<h2 class="text-xl font-bold flex items-center gap-2">
+	<h2 class="text-xl font-bold flex items-center gap-2" x-data="downloadHandler">
 		<i class="fa-solid fa-calendar-check"></i>
 		Registro de Asistencia
-		<button class="btn btn-primary-outline btn-sm" onclick="window.location.href='/download-attendance'">
+		<button class="btn btn-primary-outline btn-sm" @click="download()">
 			<i class="fa-solid fa-file-excel text-sm"></i> Descargar Asistencia
 		</button>
 	</h2>
@@ -80,4 +80,23 @@
 		{% endif %}
 	</div>
 </div>
+<script>
+	document.addEventListener('alpine:init', () => {
+    Alpine.data('downloadHandler', () => ({
+			download() {
+				const url = '/download-attendance';
+				const courseId = document.getElementById('course').value;
+				const beginDate = document.getElementById('begin_date').value;
+				const endDate = document.getElementById('end_date').value;
+
+				const params = new URLSearchParams();
+				if (courseId) params.append('course', courseId);
+				if (beginDate) params.append('begin_date', beginDate);
+				if (endDate) params.append('end_date', endDate);
+
+				window.location.href = `${url}?${params.toString()}`;
+			}
+		}));
+	})
+</script>
 {% endblock %}
