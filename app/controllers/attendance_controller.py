@@ -8,6 +8,12 @@ import pandas as pd
 from io import BytesIO
 from app import VIDEO_URL
 from app.controllers.arcface_service import recognize_faces
+from app import db
+from app.models.user import User
+from app.models.course import Course
+from app.models.attendance import Attendance
+from app.models.enrollment import Enrollment
+from datetime import datetime
 
 attendance_bp = Blueprint('attendance', __name__, url_prefix='/attendance')
 camera_active = False  # Global o en módulo
