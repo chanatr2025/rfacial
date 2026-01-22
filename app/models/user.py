@@ -6,6 +6,7 @@ class User(db.Model, UserMixin):
 	id = db.Column(db.String(36), primary_key=True, default=db.func.uuid())
 	name = db.Column(db.String(150), nullable=False)
 	email = db.Column(db.String(150), unique=True, nullable=False)
+	student_code = db.Column(db.String(6), nullable=True)
 	avatar = db.Column(db.String(200), nullable=True, default='')
 	password = db.Column(db.String(200), nullable=False)
 	role = db.Column(db.String(50), nullable=False, default='user')

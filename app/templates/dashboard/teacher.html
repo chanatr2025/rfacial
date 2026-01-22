@@ -68,14 +68,47 @@
 						</button>
 					</div>
 
-					<!-- Aquí se muestra el stream -->
-					<div class="flex justify-center">
+		<!-- Tabs para elegir entre cámara o subir imagen -->
+					<div class="flex border-b mb-4">
+						<button type="button" class="px-4 py-2 font-medium" 
+							:class="mode === 'camera' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'"
+							@click="switchMode('camera')">
+							<i class="fa-solid fa-camera mr-2"></i>Cámara
+						</button>
+						<button type="button" class="px-4 py-2 font-medium"
+							:class="mode === 'upload' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'"
+							@click="switchMode('upload')">
+							<i class="fa-solid fa-upload mr-2"></i>Subir Imagen
+						</button>
+					</div>
+
+					<!-- Vista de cámara -->
+					<div class="flex justify-center" x-show="mode === 'camera'">
 						<img id="cameraPreview" class="rounded border w-auto max-h-96" x-bind:src="imgSrc" />
+					</div>
+
+					<!-- Vista de subir imagen -->
+					<div x-show="mode === 'upload'" class="flex flex-col items-center gap-4">
+						<label class="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors">
+							<input type="file" accept="image/*" class="hidden" @change="handleFileSelect($event)" />
+							<div x-show="!uploadedImage">
+								<i class="fa-solid fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+								<p class="text-gray-600">Haz clic para seleccionar una imagen</p>
+								<p class="text-gray-400 text-sm">o arrastra y suelta aquí</p>
+							</div>
+							<img x-show="uploadedImage" :src="uploadedImagePreview" class="max-h-64 rounded" />
+						</label>
+						<p x-show="uploadedImage" class="text-green-600 text-sm">
+							<i class="fa-solid fa-check-circle mr-1"></i>Imagen cargada correctamente
+						</p>
 					</div>
 
 					<div class="flex justify-end mt-4 gap-2">
 						<button class="btn btn-secondary" @click="closePreviewModal()">Cancelar</button>
-						<button class="btn btn-primary" @click="registerAttendance()">Registrar Asistencia</button>
+						<button class="btn btn-primary" @click="registerAttendance()" x-bind:disabled="mode === 'upload' && !uploadedImage">
+							<i class="fa-solid" x-bind:class="loading ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+							Registrar Asistencia
+						</button>
 					</div>
 				</div>
 			</div>
@@ -164,23 +197,65 @@
 			loading: false,
 			showModal: false,
 			imgSrc: null,
+			mode: 'camera', // 'camera' o 'upload'
+			uploadedImage: null,
+			uploadedImagePreview: null,
+			switchMode(newMode) {
+				this.mode = newMode;
+				if (newMode === 'camera') {
+					this.imgSrc = '/attendance/camera_feed';
+					this.uploadedImage = null;
+					this.uploadedImagePreview = null;
+				} else {
+					this.imgSrc = '';
+					fetch('/attendance/stop_camera', { method: 'POST' });
+				}
+			},
+			handleFileSelect(event) {
+				const file = event.target.files[0];
+				if (file) {
+					this.uploadedImage = file;
+					this.uploadedImagePreview = URL.createObjectURL(file);
+				}
+			},
 			registerAttendance() {
 				if (!this.courseId) {
 					toastr.error('Por favor, selecciona un curso.');
 					return;
 				}
 
-				this.closePreviewModal()
+				if (this.mode === 'upload' && !this.uploadedImage) {
+					toastr.error('Por favor, selecciona una imagen.');
+					return;
+				}
 
-				const url = `/attendance/take/${this.courseId}`;
 				this.loading = true;
-				fetch(url, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ state: this.type })
-				}).then(async res => {
+				let fetchPromise;
+
+				if (this.mode === 'upload') {
+					// Enviar imagen subida
+					const formData = new FormData();
+					formData.append('image', this.uploadedImage);
+					formData.append('state', this.type);
+
+					fetchPromise = fetch(`/attendance/take-upload/${this.courseId}`, {
+						method: 'POST',
+						body: formData
+					});
+				} else {
+					// Usar cámara (comportamiento original)
+					fetchPromise = fetch(`/attendance/take/${this.courseId}`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({ state: this.type })
+					});
+				}
+
+				this.closePreviewModal();
+
+				fetchPromise.then(async res => {
 					this.loading = false;
 					if (res.ok) {
 						return {
@@ -194,34 +269,42 @@
 						} else {
 							throw new Error('Error al registrar asistencia.');
 						}
+
 					}
 				}).then(({ fileName, blob }) => {
-					const url = window.URL.createObjectURL(blob);
+					/* const url = window.URL.createObjectURL(blob);
 					const a = document.createElement('a');
 					a.href = url;
 					a.download = fileName;
 					document.body.appendChild(a);
 					a.click();
-					a.remove();
-					toastr.success('Asistencia registrada y descargada exitosamente.');
-					window.location.reload()
+					a.remove(); */
+					toastr.success('Asistencia registrada ');
+					//window.location.reload()
+					this.openPreviewModal();
 				}).catch(error => {
 					toastr.error(error.message || 'Error al registrar asistencia.');
+					this.openPreviewModal()
 				})
+				
 			},
 			openPreviewModal() {
 				if (!this.courseId) {
 					toastr.error('Por favor, selecciona un curso.');
 					return;
 				}
-
-				this.imgSrc = '/attendance/camera_feed'
+				this.mode = 'camera';
+				this.uploadedImage = null;
+				this.uploadedImagePreview = null;
+				this.imgSrc = '/attendance/camera_feed';
 
 				this.showModal = true;
 			},
 			async closePreviewModal() {
-				this.imgSrc = ''
-				this.showModal = false
+				this.imgSrc = '';
+				this.showModal = false;
+				this.uploadedImage = null;
+				this.uploadedImagePreview = null;
 				await fetch('/attendance/stop_camera', { method: 'POST' })
 			}
 		}))

@@ -3,11 +3,12 @@ from flask_login import login_required, current_user
 import cv2
 import os
 import sys
+import numpy as np
 
 import pandas as pd
 from io import BytesIO
 from app import VIDEO_URL
-from app.controllers.arcface_service import recognize_faces
+from app.controllers.arcface_service1 import recognize_faces
 from app import db
 from app.models.user import User
 from app.models.course import Course
@@ -50,18 +51,56 @@ def stop_camera():
 	camera_active = False
 	return jsonify({'message': 'Cámara detenida'}), 200
 
+@attendance_bp.route('/take-upload/<course_id>', methods=['POST'])
+@login_required
+def take_attendance_upload(course_id):
+	"""Tomar asistencia con imagen subida"""
+	if current_user.role != 'teacher':
+		return jsonify({'error': 'Acceso no autorizado'}), 403
+
+	course = Course.query.get(course_id)
+	state = request.form.get('state')
+
+	if not state or state not in ['Ingreso', 'Salida']:
+		return jsonify({'error': 'Estado no proporcionado'}), 400
+
+	if not course or course.teacher_id != current_user.id:
+		return jsonify({'error': 'Curso no encontrado o no autorizado'}), 404
+
+	if 'image' not in request.files:
+		return jsonify({'error': 'No se proporcionó imagen'}), 400
+
+	file = request.files['image']
+	if file.filename == '':
+		return jsonify({'error': 'No se seleccionó archivo'}), 400
+
+	try:
+		# Leer imagen del archivo subido
+		file_bytes = np.frombuffer(file.read(), np.uint8)
+		frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
+		if frame is None:
+			return jsonify({'error': 'No se pudo procesar la imagen'}), 400
+
+		return process_attendance(course, frame, state)
+	except Exception as e:
+		db.session.rollback()
+		print(f"Error al tomar asistencia: {e}")
+		return jsonify({'error': f'Error al tomar asistencia'}), 500
+
 @attendance_bp.route('/take/<course_id>', methods=['POST'])
 @login_required
-def take_attendance(course_id):# json request
+def take_attendance(course_id):
+	"""Tomar asistencia con cámara"""
 	if current_user.role != 'teacher':
-		jsonify({'error': 'Acceso no autorizado'}), 403
+		return jsonify({'error': 'Acceso no autorizado'}), 403
 
 	course = Course.query.get(course_id)
 
 	data = request.get_json()
 	if not data or 'state' not in data or data['state'] not in ['Ingreso', 'Salida']:
 		return jsonify({'error': 'Estado no proporcionado'}), 400
-	# state Ingreso, Salida
+
 	state = data['state']
 	if not course or course.teacher_id != current_user.id:
 		return jsonify({'error': 'Curso no encontrado o no autorizado'}), 404
@@ -73,53 +112,54 @@ def take_attendance(course_id):# json request
 		return jsonify({'error': 'No se pudo acceder a la cámara'}), 500
 
 	try:
-		user_ids = recognize_faces(frame)
-
-		if not user_ids or len(user_ids) == 0:
-			return jsonify({'error': 'No se reconoció a nadie'}), 404
-
-		recognized_people = set()
-
-		for user_id in user_ids:
-			# check if the user is enrolled in the course
-			enrollment = Enrollment.query.filter_by(student_id=user_id, course_id=course.id).first()
-			if enrollment:
-				recognized_people.add(user_id)
-
-		if not recognized_people or len(recognized_people) == 0:
-			return jsonify({'error': 'No se reconoció a nadie en la imagen'}), 404
-
-		# Record attendance for recognized users
-		users = User.query.filter(User.id.in_(recognized_people)).all()
-		for user in users:
-			print(f"Registro de asistencia para: {user.name} ({user.id}) en curso {course.name} ({course.id}) - Estado: {state}")
-			attendance = Attendance(user_id=user.id, course_id=course.id, user_name=user.name, register_date=datetime.now(), type=state)
-			db.session.add(attendance)
-		db.session.flush()
-
-		df = pd.DataFrame([{
-			'Estudiante': user.name,
-			'Curso': course.name,
-			'Fecha y hora': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-			'Tipo': state
-		} for user in users])
-		# Create a temporary Excel file path
-		excel_path = f'temp_attendance.xlsx'
-		# Save DataFrame to Excel
-		#df.to_excel('app/' + excel_path, index=False)
-		output = BytesIO()
-		df.to_excel(output, index=False, engine='openpyxl')
-		output.seek(0)
-
-		db.session.commit()
-		# Send the Excel file as a response
-		return send_file(
-    	output,
-    	as_attachment=True,
-  		download_name=f'attendance_{course_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx',
-			mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
+		return process_attendance(course, frame, state)
 	except Exception as e:
 		db.session.rollback()
 		print(f"Error al tomar asistencia: {e}")
 		return jsonify({'error': f'Error al tomar asistencia'}), 500
+
+def process_attendance(course, frame, state):
+	"""Procesa la asistencia a partir de un frame de imagen"""
+	user_ids = recognize_faces(frame)
+
+	if not user_ids or len(user_ids) == 0:
+		return jsonify({'error': 'No se reconoció a nadie'}), 404
+
+	recognized_people = set()
+
+	for user_id in user_ids:
+		# check if the user is enrolled in the course
+		enrollment = Enrollment.query.filter_by(student_id=user_id, course_id=course.id).first()
+		if enrollment:
+			recognized_people.add(user_id)
+
+	if not recognized_people or len(recognized_people) == 0:
+		return jsonify({'error': 'No se reconoció a nadie en la imagen'}), 404
+
+	# Record attendance for recognized users
+	users = User.query.filter(User.id.in_(recognized_people)).all()
+	for user in users:
+		print(f"Registro de asistencia para: {user.name} ({user.id}) en curso {course.name} ({course.id}) - Estado: {state}")
+		attendance = Attendance(user_id=user.id, course_id=course.id, user_name=user.name, register_date=datetime.now(), type=state)
+		db.session.add(attendance)
+	db.session.flush()
+
+	df = pd.DataFrame([{
+		'Estudiante': user.name,
+		'Curso': course.name,
+		'Fecha y hora': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+		'Tipo': state
+	} for user in users])
+
+	output = BytesIO()
+	df.to_excel(output, index=False, engine='openpyxl')
+	output.seek(0)
+
+	db.session.commit()
+	# Send the Excel file as a response
+	return send_file(
+		output,
+		as_attachment=True,
+		download_name=f'attendance_{course.id}{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+		mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+	)

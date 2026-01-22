@@ -1,14 +1,23 @@
 {% extends 'layouts/admin-layout.html' %} {% block content %}
 <div class="flex flex-col gap-4" x-data="modalTrigger">
 	<form class="flex gap-4">
-		<input type="search" class="form-control flex-1" placeholder="Buscar usuario por nombre o email" name="search" value="{{search}}" />
+		<input
+			type="search"
+			class="form-control flex-1"
+			placeholder="Buscar usuario por nombre o email"
+			name="search"
+			value="{{search}}"
+		/>
 		<button type="submit" class="btn btn-info">Buscar</button>
-		<button type="button" class="btn btn-primary" @click="show()">Agregar nuevo</button>
+		<button type="button" class="btn btn-primary" @click="show()">
+			Agregar nuevo
+		</button>
 	</form>
 	<div class="bg-white rounded overflow-hidden p-1">
 		<table class="table">
 			<thead>
 				<tr>
+					<th>Código estudiante</th>
 					<th>Nombre</th>
 					<th>Correo</th>
 					<th>Rol</th>
@@ -17,23 +26,32 @@
 			</thead>
 			<tbody>
 				{% for item in users %}
-					<tr>
-						<td>{{ item.name }}</td>
-						<td>{{ item.email }}</td>
-						<td>{{ item.role }}</td>
-						<td class="text-end">
-							<div class="flex justify-end gap-2">
-								<button type="button" class="action-btn" @click="loadData('{{ item.id }}')">
-									<i class="fa-solid fa-pencil"></i>
+				<tr>
+					<td>{{ item.student_code if item.student_code else " "}}</td>
+					<td>{{ item.name }}</td>
+					<td>{{ item.email }}</td>
+					<td>{{ item.role }}</td>
+					<td class="text-end">
+						<div class="flex justify-end gap-2">
+							<button
+								type="button"
+								class="action-btn"
+								@click="loadData('{{ item.id }}')"
+							>
+								<i class="fa-solid fa-pencil"></i>
+							</button>
+							<form
+								action="/users/delete/{{ item.id }}"
+								method="POST"
+								class="inline-block"
+							>
+								<button type="submit" class="action-btn">
+									<i class="fa-solid fa-trash"></i>
 								</button>
-								<form action="/users/delete/{{ item.id }}" method="POST" class="inline-block">
-									<button type="submit" class="action-btn">
-										<i class="fa-solid fa-trash"></i>
-									</button>
-								</form>
-							</div>
-						</td>
-					</tr>
+							</form>
+						</div>
+					</td>
+				</tr>
 				{% endfor %}
 			</tbody>
 		</table>
@@ -49,60 +67,123 @@
 		x-transition:leave-end="opacity-0"
 		x-cloak
 	>
-    <div class="bg-white w-full rounded-md shadow-lg mx-auto my-auto max-w-2xl py-2 px-4">
+		<div
+			class="bg-white w-full rounded-md shadow-lg mx-auto my-auto max-w-2xl py-2 px-4"
+		>
 			<div class="flex items-center justify-between pb-2">
-				<h2 class="text-base font-semibold" x-text="data ? 'Editar Usuario' : 'Agregar Usuario'"></h2>
-				<button type="button" class="cursor-pointer focus:outline-none" @click="close()">
+				<h2
+					class="text-base font-semibold"
+					x-text="data ? 'Editar Usuario' : 'Agregar Usuario'"
+				></h2>
+				<button
+					type="button"
+					class="cursor-pointer focus:outline-none"
+					@click="close()"
+				>
 					<i class="fa-solid fa-xmark text-lg"></i>
 				</button>
 			</div>
-			<form method="POST" x-bind:action="actionUrl()" enctype="multipart/form-data">
+			<form
+				method="POST"
+				x-bind:action="actionUrl()"
+				enctype="multipart/form-data"
+			>
 				<div class="form-group">
 					<label for="name" class="form-label">Nombre</label>
-					<input type="text" id="name" name="name" class="form-control w-full" x-bind:value="data ? data.name : ''" required />
+					<input
+						type="text"
+						id="name"
+						name="name"
+						class="form-control w-full"
+						x-bind:value="data ? data.name : ''"
+						required
+					/>
 				</div>
 				<div class="form-group">
 					<label for="email" class="form-label">Correo Electrónico</label>
-					<input type="email" id="email" name="email" class="form-control w-full" x-bind:value="data ? data.email : ''" required />
+					<input
+						type="email"
+						id="email"
+						name="email"
+						class="form-control w-full"
+						x-bind:value="data ? data.email : ''"
+						required
+					/>
+				</div>
+				<div class="form-group">
+					<label for="student_code" class="form-label"
+						>Código de Estudiante</label
+					>
+					<input
+						type="text"
+						id="student_code"
+						name="student_code"
+						class="form-control w-full"
+						x-bind:value="data ? data.student_code : ''"
+					/>
 				</div>
 				<div class="form-group">
 					<label for="role" class="form-label">Rol</label>
 					<select id="role" name="role" class="form-control w-full" required>
 						<option value="" disabled selected>Seleccione</option>
-						<option value="admin" x-bind:selected="data && data.role === 'admin'">Administrador</option>
-						<option value="teacher" x-bind:selected="data && data.role === 'teacher'">Docente</option>
-						<option value="student" x-bind:selected="data && data.role === 'student'">Estudiante</option>
+						<option
+							value="admin"
+							x-bind:selected="data && data.role === 'admin'"
+						>
+							Administrador
+						</option>
+						<option
+							value="teacher"
+							x-bind:selected="data && data.role === 'teacher'"
+						>
+							Docente
+						</option>
+						<option
+							value="student"
+							x-bind:selected="data && data.role === 'student'"
+						>
+							Estudiante
+						</option>
 					</select>
 				</div>
 				<div class="form-group">
 					<label for="image" class="form-label">Imagen</label>
-					<input type="file" id="image" name="image" multiple class="form-control w-full" accept="image/*" />
+					<input
+						type="file"
+						id="image"
+						name="image"
+						multiple
+						class="form-control w-full"
+						accept="image/*"
+					/>
 				</div>
 				<div class="flex justify-end">
-					<button type="button" class="btn btn-secondary mr-2" @click="close()">Cancelar</button>
+					<button type="button" class="btn btn-secondary mr-2" @click="close()">
+						Cancelar
+					</button>
 					<button type="submit" class="btn btn-primary">
 						<i class="fa-solid fa-check"></i> Guardar
 					</button>
 				</div>
 			</form>
 		</div>
-  </div>
+	</div>
 </div>
 <script>
-	document.addEventListener('alpine:init', () => {
-    Alpine.data('modalTrigger', () => ({
+	document.addEventListener("alpine:init", () => {
+		Alpine.data("modalTrigger", () => ({
 			open: false,
 			data: null,
 			loadData(id) {
 				fetch(`/users/${id}`)
-					.then(response => response.json())
-					.then(data => {
+					.then((response) => response.json())
+					.then((data) => {
 						this.data = data;
 						this.open = true;
 					})
-					.catch(error => {
-						console.error('Error fetching data:', error);
-						toastr.error('Error al cargar los datos del usuario.');
+					.catch((error) => {
+						console.error("Error fetching data:", error);
+						toastr.error("Error al cargar los datos del usuario.");
 					});
 			},
 			show() {
@@ -114,9 +195,9 @@
 				this.data = null;
 			},
 			actionUrl() {
-				return this.data ? `/users/update/${this.data.id}` : '/users';
-			}
-		}))
-	})
+				return this.data ? `/users/update/${this.data.id}` : "/users";
+			},
+		}));
+	});
 </script>
 {% endblock %}

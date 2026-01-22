@@ -1,9 +1,17 @@
 {% extends 'layouts/admin-layout.html' %} {% block content %}
 <div class="flex flex-col gap-4" x-data="modalTrigger">
 	<form class="flex gap-4">
-		<input type="search" class="form-control flex-1" placeholder="Buscar por estudiante o curso" name="search" value="{{search}}" />
+		<input
+			type="search"
+			class="form-control flex-1"
+			placeholder="Buscar por estudiante o curso"
+			name="search"
+			value="{{search}}"
+		/>
 		<button type="submit" class="btn btn-info">Buscar</button>
-		<button type="button" class="btn btn-primary" @click="show()">Agregar nuevo</button>
+		<button type="button" class="btn btn-primary" @click="show()">
+			Agregar nuevo
+		</button>
 	</form>
 	<div class="bg-white rounded overflow-hidden p-1">
 		<table class="table">
@@ -16,19 +24,23 @@
 			</thead>
 			<tbody>
 				{% for item in enrollments %}
-					<tr>
-						<td>{{ item.course.name if item.course else 'No asignado' }}</td>
-						<td>{{ item.student.name if item.student else 'No asignado' }}</td>
-						<td class="text-end">
-							<div class="flex justify-end gap-2">
-								<form action="/enrollments/delete/{{ item.id }}" method="POST" class="inline-block">
-									<button type="submit" class="action-btn">
-										<i class="fa-solid fa-trash"></i>
-									</button>
-								</form>
-							</div>
-						</td>
-					</tr>
+				<tr>
+					<td>{{ item.course.name if item.course else 'No asignado' }}</td>
+					<td>{{ item.student.name if item.student else 'No asignado' }}</td>
+					<td class="text-end">
+						<div class="flex justify-end gap-2">
+							<form
+								action="/enrollments/delete/{{ item.id }}"
+								method="POST"
+								class="inline-block"
+							>
+								<button type="submit" class="action-btn">
+									<i class="fa-solid fa-trash"></i>
+								</button>
+							</form>
+						</div>
+					</td>
+				</tr>
 				{% endfor %}
 			</tbody>
 		</table>
@@ -43,46 +55,67 @@
 		x-transition:leave-start="opacity-100"
 		x-transition:leave-end="opacity-0"
 		x-cloak
+		id="modal_container"
 	>
-    <div class="bg-white w-full rounded-md shadow-lg mx-auto my-auto max-w-2xl py-2 px-4">
+		<div
+			class="bg-white w-full rounded-md shadow-lg mx-auto my-auto max-w-2xl py-2 px-4"
+		>
 			<div class="flex items-center justify-between pb-2">
 				<h2 class="text-base font-semibold">Agregar Inscripción</h2>
-				<button type="button" class="cursor-pointer focus:outline-none" @click="close()">
+				<button
+					type="button"
+					class="cursor-pointer focus:outline-none"
+					@click="close()"
+				>
 					<i class="fa-solid fa-xmark text-lg"></i>
 				</button>
 			</div>
 			<form method="POST" action="/enrollments">
 				<div class="form-group">
 					<label for="course_id" class="form-label">Curso</label>
-					<select id="course_id" name="course_id" class="form-control w-full" required>
+					<select
+						id="course_id"
+						name="course_id"
+						class="form-control w-full"
+						required
+					>
 						<option value="" disabled selected>Seleccione</option>
 						{% for course in courses %}
-							<option value="{{ course.id }}">{{ course.name }}</option>
+						<option value="{{ course.id }}">{{ course.name }}</option>
 						{% endfor %}
 					</select>
 				</div>
 				<div class="form-group">
 					<label for="student_id" class="form-label">Estudiante</label>
-					<select id="student_id" name="student_id" class="form-control w-full" required>
-						<option value="" disabled selected>Seleccione</option>
+					<select
+						id="student_id"
+						name="student_id[]"
+						class="form-control w-full"
+						style="width: 100%"
+						required
+						multiple
+					>
+						<option value="" disabled></option>
 						{% for student in students %}
-							<option value="{{ student.id }}">{{ student.name }}</option>
+						<option value="{{ student.id }}">{{ student.name }}</option>
 						{% endfor %}
 					</select>
 				</div>
 				<div class="flex justify-end">
-					<button type="button" class="btn btn-secondary mr-2" @click="close()">Cancelar</button>
+					<button type="button" class="btn btn-secondary mr-2" @click="close()">
+						Cancelar
+					</button>
 					<button type="submit" class="btn btn-primary">
 						<i class="fa-solid fa-check"></i> Guardar
 					</button>
 				</div>
 			</form>
 		</div>
-  </div>
+	</div>
 </div>
 <script>
-	document.addEventListener('alpine:init', () => {
-    Alpine.data('modalTrigger', () => ({
+	document.addEventListener("alpine:init", () => {
+		Alpine.data("modalTrigger", () => ({
 			open: false,
 			show() {
 				this.open = true;
@@ -90,7 +123,17 @@
 			close() {
 				this.open = false;
 			},
-		}))
-	})
+		}));
+	});
+</script>
+<script type="module">
+	$(document).ready(function () {
+		$("#student_id").select2({
+			multiple: true,
+			placeholder: "Seleccione estudiantes",
+			allowClear: true,
+			dropdownParent: $("#modal_container"),
+		});
+	});
 </script>
 {% endblock %}

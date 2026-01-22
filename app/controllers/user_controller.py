@@ -28,6 +28,7 @@ def getById(id):
 		'id': user.id,
 		'name': user.name,
 		'email': user.email,
+		'student_code': user.student_code,
 		'avatar': user.avatar,
 		'role': user.role
 	})
@@ -50,6 +51,7 @@ def create():
 		user = User(
 			name=data.get('name'),
 			email=data.get('email'),
+			student_code=data.get('student_code'),
 			avatar='',
 			role=data.get('role', 'student'),
 			password=password
@@ -126,6 +128,7 @@ def update(id):
 		user.name = data.get('name')
 		user.email = data.get('email')
 		user.role = data.get('role', 'user')
+		user.student_code=data.get('student_code')
 
 		db.session.commit()
 		flash('Operación realizada exitosamente', 'success')

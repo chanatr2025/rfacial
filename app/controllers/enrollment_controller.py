@@ -26,24 +26,36 @@ def index():
 @login_required
 def create():
 	try:
-		data = request.form
-		if not data or not data.get('course_id') or not data.get('student_id'):
-			flash('El curso y el estudiante son obligatorios', 'error')
-			return redirect(url_for('enrollments.index'))
-		if Enrollment.query.filter_by(course_id=data.get('course_id'), student_id=data.get('student_id')).first():
-			flash('El usuario ya está inscrito en este curso', 'error')
+		course_id = request.form.get('course_id')
+		student_ids = request.form.getlist('student_id[]')
+
+		if not course_id or not student_ids:
+			flash('El curso y al menos un estudiante son obligatorios', 'error')
 			return redirect(url_for('enrollments.index'))
 
-		enrollment = Enrollment(
-			student_id=data.get('student_id'),
-			course_id=data.get('course_id'),
-			register_date=db.func.now()
-		)
+		enrolled_count = 0
+		already_enrolled = 0
 
-		db.session.add(enrollment)
+		for student_id in student_ids:
+			if Enrollment.query.filter_by(course_id=course_id, student_id=student_id).first():
+				already_enrolled += 1
+				continue
+
+			enrollment = Enrollment(
+				student_id=student_id,
+				course_id=course_id,
+				register_date=db.func.now()
+			)
+			db.session.add(enrollment)
+			enrolled_count += 1
+
 		db.session.commit()
 
-		flash('Operación realizada exitosamente', 'success')
+		if enrolled_count > 0:
+			flash(f'Se inscribieron {enrolled_count} estudiante(s) exitosamente', 'success')
+		if already_enrolled > 0:
+			flash(f'{already_enrolled} estudiante(s) ya estaban inscritos en este curso', 'warning')
+
 		return redirect(url_for('enrollments.index'))
 	except Exception as e:
 		db.session.rollback()

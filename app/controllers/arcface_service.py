@@ -87,7 +87,16 @@ def recognize_faces(frame):
 
 		print(known_names)
 		print(f"Reconocido: {best_name} con score {best_score:.2f}")
-		if best_score > THRESHOLD:
+		if best_score >= THRESHOLD:
 			recognized_faces.append(best_name)
+			label = f"{name} ({best_score*100:.2f}%)"
+			color= (0, 255, 0)
+		else:
+			label="Desconocido"
+			color=(0,0,255)
+
+        # Dibujar
+		cv2.rectangle(frame,(x,y), (x+w, y+h), color, 2)
+		cv2.putText(frame,label,(x, y-10),2, 0.7, color, 2, cv2.LINE_AA)
 
 	return recognized_faces
