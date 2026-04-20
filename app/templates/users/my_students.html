@@ -1,0 +1,157 @@
+{% extends 'layouts/admin-layout.html' %} {% block content %}
+<div class="flex flex-col gap-4" x-data="editModal">
+
+	<!-- Filtros -->
+	<form class="bg-white rounded-md p-4 shadow-sm" method="GET" action="/users/my-students">
+		<div class="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto] gap-3 items-end w-full">
+			<div>
+				<label for="course_id" class="form-label">Curso</label>
+				<select id="course_id" name="course_id" class="form-control w-full" style="width:100%;">
+					{% for course in courses %}
+						<option value="{{ course.id }}" {% if course.id == course_id %}selected{% endif %}>
+							{{ course.name }}
+						</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div>
+				<label for="search" class="form-label">Buscar estudiante</label>
+				<input
+					type="search"
+					id="search"
+					name="search"
+					class="form-control w-full"
+					placeholder="Nombre, código o correo"
+					value="{{ search }}"
+				/>
+			</div>
+			<div>
+				<button type="submit" class="btn btn-info whitespace-nowrap">
+					<i class="fa-solid fa-magnifying-glass"></i> Buscar
+				</button>
+			</div>
+		</div>
+	</form>
+
+	<!-- Tabla -->
+	<div class="bg-white rounded-md overflow-hidden shadow-sm p-1">
+		{% if not course_id %}
+			<p class="text-center text-gray-500 py-8 text-sm">Seleccione un curso para ver los estudiantes matriculados.</p>
+		{% elif enrollments %}
+			<table class="table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Nombre</th>
+						<th>Correo</th>
+						<th>Código</th>
+						<th>Fecha de matrícula</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for item in enrollments %}
+						<tr>
+							<td>{{ loop.index }}</td>
+							<td>{{ item.student.name if item.student else '—' }}</td>
+							<td>{{ item.student.email if item.student else '—' }}</td>
+							<td>{{ item.student.student_code if item.student and item.student.student_code else '—' }}</td>
+							<td>{{ item.register_date.strftime('%d/%m/%Y') if item.register_date else '—' }}</td>
+							<td class="text-end">
+								{% if item.student %}
+								<button type="button" class="action-btn" @click="load('{{ item.student.id }}')">
+									<i class="fa-solid fa-pencil"></i>
+								</button>
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p class="text-center text-gray-500 py-8 text-sm">
+				No se encontraron estudiantes
+				{% if search %}para la búsqueda "<strong>{{ search }}</strong>"{% endif %}
+				en este curso.
+			</p>
+		{% endif %}
+	</div>
+
+	<!-- Modal editar -->
+	<div
+		class="fixed inset-0 bg-black bg-opacity-50 flex flex-col z-[99] px-1 sm:px-8 py-1 sm:py-8 overflow-y-auto"
+		x-show="open"
+		x-transition:enter="transition ease-out duration-300"
+		x-transition:enter-start="opacity-0"
+		x-transition:enter-end="opacity-100"
+		x-transition:leave="transition ease-in duration-200"
+		x-transition:leave-start="opacity-100"
+		x-transition:leave-end="opacity-0"
+		x-cloak
+	>
+		<div class="bg-white w-full rounded-md shadow-lg mx-auto my-auto max-w-lg py-2 px-4">
+			<div class="flex items-center justify-between pb-2">
+				<h2 class="text-base font-semibold">Editar Estudiante</h2>
+				<button type="button" class="cursor-pointer focus:outline-none" @click="close()">
+					<i class="fa-solid fa-xmark text-lg"></i>
+				</button>
+			</div>
+			<form method="POST" :action="/users/update/${studentId}" enctype="multipart/form-data" class="flex flex-col gap-3">
+				<div class="form-group">
+					<label class="form-label">Nombre completo <span class="text-red-500">*</span></label>
+					<input type="text" name="name" class="form-control w-full" x-model="name" required />
+				</div>
+				<div class="form-group">
+					<label class="form-label">Correo electrónico <span class="text-red-500">*</span></label>
+					<input type="email" name="email" class="form-control w-full" x-model="email" required />
+				</div>
+				<!-- role oculto para que el update no lo pise -->
+				<input type="hidden" name="role" value="student" />
+				<div class="form-group">
+					<label class="form-label">Fotos (reemplaza las existentes si sube más de una)</label>
+					<input type="file" name="image" multiple class="form-control w-full" accept="image/*" />
+				</div>
+				<div class="flex justify-end gap-2 pt-1">
+					<button type="button" class="btn btn-secondary" @click="close()">Cancelar</button>
+					<button type="submit" class="btn btn-primary">
+						<i class="fa-solid fa-check"></i> Guardar
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+</div>
+<script type="module">
+	$(document).ready(function() {
+		$('#course_id').select2({
+			placeholder: 'Seleccione un curso',
+			language: 'es',
+		});
+	});
+</script>
+<script>
+	document.addEventListener('alpine:init', () => {
+		Alpine.data('editModal', () => ({
+			open: false,
+			studentId: null,
+			name: '',
+			email: '',
+			load(id) {
+				fetch(`/users/${id}`)
+					.then(r => r.json())
+					.then(data => {
+						this.studentId = data.id;
+						this.name = data.name;
+						this.email = data.email;
+						this.open = true;
+					})
+					.catch(() => toastr.error('Error al cargar los datos del estudiante.'));
+			},
+			close() {
+				this.open = false;
+			},
+		}))
+	})
+</script>
+{% endblock %}

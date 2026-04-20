@@ -116,6 +116,26 @@
 						</a>
 					</li>
 					{% endif %}
+					{% if current_user.role == 'teacher' %}
+					<li>
+						<a
+							class="sidenav-item {{'active' if request.path == '/users/register-student' else ''}}"
+							href="/users/register-student"
+						>
+							<i class="icon fa-solid fa-user-plus"></i>
+							<span class="item-text">Registrar Estudiante</span>
+						</a>
+					</li>
+					<li>
+						<a
+							class="sidenav-item {{'active' if request.path == '/users/my-students' else ''}}"
+							href="/users/my-students"
+						>
+							<i class="icon fa-solid fa-list"></i>
+							<span class="item-text">Mis Estudiantes</span>
+						</a>
+					</li>
+					{% endif %}
 					<!-- <li x-data="{ open: false }">
 					<a
 						class="sidenav-item {{'active' if request.path == '/users' else ''}}"

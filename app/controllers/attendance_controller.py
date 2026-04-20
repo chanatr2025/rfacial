@@ -118,6 +118,50 @@ def take_attendance(course_id):
 		print(f"Error al tomar asistencia: {e}")
 		return jsonify({'error': f'Error al tomar asistencia'}), 500
 
+@attendance_bp.route('/take-manual/<course_id>', methods=['POST'])
+@login_required
+def take_attendance_manual(course_id):
+	"""Tomar asistencia manual para un estudiante específico"""
+	if current_user.role != 'teacher':
+		return jsonify({'error': 'Acceso no autorizado'}), 403
+
+	course = Course.query.get(course_id)
+	data = request.get_json()
+
+	if not data or data.get('state') not in ['Ingreso', 'Salida']:
+		return jsonify({'error': 'Estado no proporcionado'}), 400
+
+	student_id = data.get('student_id')
+	if not student_id:
+		return jsonify({'error': 'Estudiante no proporcionado'}), 400
+
+	if not course or course.teacher_id != current_user.id:
+		return jsonify({'error': 'Curso no encontrado o no autorizado'}), 404
+
+	enrollment = Enrollment.query.filter_by(student_id=student_id, course_id=course.id).first()
+	if not enrollment:
+		return jsonify({'error': 'El estudiante no está matriculado en este curso'}), 404
+
+	user = User.query.filter_by(id=student_id, role='student').first()
+	if not user:
+		return jsonify({'error': 'Estudiante no encontrado'}), 404
+
+	try:
+		attendance = Attendance(
+			user_id=user.id,
+			course_id=course.id,
+			user_name=user.name,
+			register_date=datetime.now(),
+			type=data['state']
+		)
+		db.session.add(attendance)
+		db.session.commit()
+		return jsonify({'message': 'Asistencia registrada', 'student': user.name}), 200
+	except Exception as e:
+		db.session.rollback()
+		print(f"Error al tomar asistencia manual: {e}")
+		return jsonify({'error': 'Error al registrar asistencia manual'}), 500
+
 def process_attendance(course, frame, state):
 	"""Procesa la asistencia a partir de un frame de imagen"""
 	user_ids = recognize_faces(frame)

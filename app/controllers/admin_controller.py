@@ -68,8 +68,14 @@ def home():
 		filter_conditions.append(Attendance.user_id.in_([s.id for s in students]))
 		filter_conditions.append(Attendance.course_id.in_(course_ids))
 		attendances = Attendance.query.filter(*filter_conditions).order_by(Attendance.register_date.desc()).all()
-		print(courses[0].schedules)
-		return render_template('dashboard/teacher.html', courses=courses, attendances=attendances, begin_date=begin_date, end_date=end_date, course_id=course_id, students=students, student_id=student_id)
+		course_students = {
+			course.id: [
+				{'id': e.student.id, 'name': e.student.name}
+				for e in course.enrollments if e.student
+			]
+			for course in courses
+		}
+		return render_template('dashboard/teacher.html', courses=courses, attendances=attendances, begin_date=begin_date, end_date=end_date, course_id=course_id, students=students, student_id=student_id, course_students = course_students)
 
 	return render_template('home.html', user=current_user)
 
@@ -166,7 +172,7 @@ def download_attendance():
 
 		# Calcular el número de columnas para el merge del encabezado
 		# Añadimos 2 columnas adicionales para Totales: Asistencias y Faltas
-		total_cols = max(3 + num_dates + 2, 20)  # Mínimo 20 columnas para el encabezado
+		total_cols = max(3 + num_dates + 4, 20)  # Mínimo 20 columnas para el encabezado
 		last_col = get_column_letter(total_cols)
 
 	# Insertar logo institucional si existe (archivo: logo-inst.jpg en app/static)
@@ -273,9 +279,13 @@ def download_attendance():
 		# Columnas de totales (Asistencias y Faltas)
 		col_present = get_column_letter(4 + num_dates)
 		col_absent = get_column_letter(4 + num_dates + 1)
+		col_present_p = get_column_letter(4 + num_dates + 2)
+		col_absent_p = get_column_letter(4 + num_dates + 3)
 		ws[f'{col_present}{header_row}'] = 'Asistencias'
 		ws[f'{col_absent}{header_row}'] = 'Faltas'
-		for col in [col_present, col_absent]:
+		ws[f'{col_present_p}{header_row}'] = 'Asistencias %'
+		ws[f'{col_absent_p}{header_row}'] = 'Faltas % '
+		for col in [col_present, col_absent, col_present_p, col_absent_p]:
 			ws[f'{col}{header_row}'].font = bold_font
 			ws[f'{col}{header_row}'].alignment = Alignment(horizontal='center', vertical='center')
 			ws[f'{col}{header_row}'].border = thin_border
@@ -323,6 +333,8 @@ def download_attendance():
 					cell.font = Font(color="FF0000", bold=True)
 			# Escribir totales de Asistencias y Faltas
 			absent_count = num_dates - present_count
+			present_p = (present_count / num_dates) if num_dates else 0
+			absent_p = (absent_count / num_dates) if num_dates else 0
 			ws[f'{col_present}{data_row}'] = present_count
 			ws[f'{col_present}{data_row}'].alignment = center_align
 			ws[f'{col_present}{data_row}'].border = thin_border
@@ -330,6 +342,16 @@ def download_attendance():
 			ws[f'{col_absent}{data_row}'] = absent_count
 			ws[f'{col_absent}{data_row}'].alignment = center_align
 			ws[f'{col_absent}{data_row}'].border = thin_border
+
+			ws[f'{col_present_p}{data_row}'] = present_p
+			ws[f'{col_present_p}{data_row}'].alignment = center_align
+			ws[f'{col_present_p}{data_row}'].border = thin_border
+			ws[f'{col_present_p}{data_row}'].number_format = '0.00%'
+
+			ws[f'{col_absent_p}{data_row}'] = absent_p
+			ws[f'{col_absent_p}{data_row}'].alignment = center_align
+			ws[f'{col_absent_p}{data_row}'].border = thin_border
+			ws[f'{col_absent_p}{data_row}'].number_format = '0.00%'
 			
 			data_row += 1
 

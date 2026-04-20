@@ -1,0 +1,90 @@
+{% extends 'layouts/admin-layout.html' %} {% block content %}
+<div class="flex flex-col gap-4 max-w-2xl mx-auto">
+
+	<!-- Registro individual -->
+	<div class="bg-white rounded-md p-4 shadow-sm">
+		<h2 class="text-base font-semibold mb-4">Registrar Estudiante y Matricular</h2>
+		<form method="POST" action="/users/register-student" enctype="multipart/form-data" class="flex flex-col gap-3">
+			<div class="form-group">
+				<label for="course_id" class="form-label">Curso <span class="text-red-500">*</span></label>
+				<select id="course_id" name="course_id" class="form-control w-full select2-course" style="width:100%;" required>
+					<option value=""></option>
+					{% for course in courses %}
+						<option value="{{ course.id }}">{{ course.name }}</option>
+					{% endfor %}
+				</select>
+				{% if not courses %}
+					<p class="text-xs text-red-500 mt-1">No tiene cursos asignados.</p>
+				{% endif %}
+			</div>
+			<hr class="my-1">
+			<div class="form-group">
+				<label for="name" class="form-label">Nombre completo <span class="text-red-500">*</span></label>
+				<input type="text" id="name" name="name" class="form-control w-full" placeholder="Ej: Juan Pérez" required />
+			</div>
+			<div class="form-group">
+				<label for="email" class="form-label">Correo electrónico <span class="text-red-500">*</span></label>
+				<input type="email" id="email" name="email" class="form-control w-full" placeholder="correo@ejemplo.com" required />
+			</div>
+			<div class="form-group">
+				<label for="student_code" class="form-label">Código de estudiante</label>
+				<input type="text" id="student_code" name="student_code" class="form-control w-full" placeholder="Ej: 2024001" />
+			</div>
+			<div class="form-group">
+				<label for="password" class="form-label">Contraseña</label>
+				<input type="password" id="password" name="password" class="form-control w-full" placeholder="Dejar en blanco para usar 'root'" />
+				<p class="text-xs text-gray-500 mt-1">Si no ingresa contraseña se asignará "root" por defecto.</p>
+			</div>
+			<div class="form-group">
+				<label for="image" class="form-label">Fotos del estudiante (para reconocimiento facial)</label>
+				<input type="file" id="image" name="image" multiple class="form-control w-full" accept="image/*" />
+				<p class="text-xs text-gray-500 mt-1">Puede subir múltiples imágenes para mejorar el reconocimiento.</p>
+			</div>
+			<div class="flex justify-end gap-2 pt-2">
+				<a href="/" class="btn btn-secondary">Cancelar</a>
+				<button type="submit" class="btn btn-primary" {% if not courses %}disabled{% endif %}>
+					<i class="fa-solid fa-user-plus"></i> Registrar y Matricular
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<!-- Carga masiva Excel -->
+	<div class="bg-white rounded-md p-4 shadow-sm">
+		<h2 class="text-base font-semibold mb-4">Carga Masiva desde Excel</h2>
+		<form method="POST" action="/users/register-student/import" enctype="multipart/form-data" class="flex flex-col gap-3">
+			<div class="form-group">
+				<label for="course_id_import" class="form-label">Curso <span class="text-red-500">*</span></label>
+				<select id="course_id_import" name="course_id" class="form-control w-full select2-course" style="width:100%;" required>
+					<option value=""></option>
+					{% for course in courses %}
+						<option value="{{ course.id }}">{{ course.name }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="excel_file" class="form-label">Archivo Excel <span class="text-red-500">*</span></label>
+				<input type="file" id="excel_file" name="excel_file" class="form-control w-full" accept=".xlsx,.xls" required />
+				<p class="text-xs text-gray-500 mt-1">
+					Columnas mínimas: <strong>nombre</strong> o <strong>name</strong> y <strong>correo</strong> o <strong>email</strong>.
+					Opcionales: <strong>código</strong> / <strong>student_code</strong>.
+					Contraseña por defecto: <strong>root</strong>.
+				</p>
+			</div>
+			<div class="flex justify-end pt-2">
+				<button type="submit" class="btn btn-success" {% if not courses %}disabled{% endif %}>
+					<i class="fa-solid fa-file-import"></i> Importar y Matricular
+				</button>
+			</div>
+		</form>
+	</div>
+
+</div>
+<script type="module">
+	$(document).ready(function() {
+		$('.select2-course').select2({
+			placeholder: 'Seleccione un curso',
+		});
+	});
+</script>
+{% endblock %}

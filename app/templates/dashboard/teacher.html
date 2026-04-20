@@ -14,15 +14,12 @@
 			<ul class="list-disc pl-5 mt-2">
 				{% for itm in course.schedules %}
 				<li>
-					{% if itm.day_name == 'Monday' %} Lunes
-					{% elif itm.day_name == 'Tuesday' %} Martes
-					{% elif itm.day_name == 'Wednesday' %} Miércoles
-					{% elif itm.day_name == 'Thursday' %} Jueves
-					{% elif itm.day_name == 'Friday' %} Viernes
-					{% elif itm.day_name == 'Saturday' %} Sábado
-					{% elif itm.day_name == 'Sunday' %} Domingo
-					{% endif %}
-					: {{ itm.begin_time }} - {{ itm.end_time }}
+					{% if itm.day_name == 'Monday' %} Lunes {% elif itm.day_name ==
+					'Tuesday' %} Martes {% elif itm.day_name == 'Wednesday' %} Miércoles
+					{% elif itm.day_name == 'Thursday' %} Jueves {% elif itm.day_name ==
+					'Friday' %} Viernes {% elif itm.day_name == 'Saturday' %} Sábado {%
+					elif itm.day_name == 'Sunday' %} Domingo {% endif %} : {{
+					itm.begin_time }} - {{ itm.end_time }}
 				</li>
 				{% endfor %}
 			</ul>
@@ -33,7 +30,9 @@
 	</div>
 	<div class="bg-white p-3 rounded" x-data="attendance">
 		<h3 class="text-lg font-semibold mb-2">Registrar Asistencia</h3>
-		<p class="text-gray-600 mb-2">Selecciona un curso y el tipo de asistencia:</p>
+		<p class="text-gray-600 mb-2">
+			Selecciona un curso y el tipo de asistencia:
+		</p>
 		<div class="flex gap-4 mb-4">
 			<select name="course_id" class="form-control flex-1" x-model="courseId">
 				<option value="" class="hidden" selected>Selecciona un curso</option>
@@ -45,8 +44,16 @@
 				<option value="Ingreso">Ingreso</option>
 				<option value="Salida">Salida</option>
 			</select>
-			<button type="button" class="btn btn-primary" @click="openPreviewModal()" x-bind:disabled="loading">
-				<i class="fa-solid" x-bind:class="loading ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+			<button
+				type="button"
+				class="btn btn-primary"
+				@click="openPreviewModal()"
+				x-bind:disabled="loading"
+			>
+				<i
+					class="fa-solid"
+					x-bind:class="loading ? 'fa-spinner fa-spin' : 'fa-check'"
+				></i>
 				Registrar
 			</button>
 			<!-- Modal de cámara con stream MJPEG -->
@@ -60,53 +67,127 @@
 				x-transition:leave-start="opacity-100"
 				x-transition:leave-end="opacity-0"
 				x-cloak
+				id="modal_container"
 			>
-				<div class="bg-white w-full rounded-md shadow-lg mx-auto my-auto max-w-2xl py-2 px-4">
+				<div
+					class="bg-white w-full rounded-md shadow-lg mx-auto my-auto max-w-2xl py-2 px-4"
+				>
 					<div class="flex items-center justify-end pb-2">
-						<button type="button" class="cursor-pointer focus:outline-none" @click="closePreviewModal()">
+						<button
+							type="button"
+							class="cursor-pointer focus:outline-none"
+							@click="closePreviewModal()"
+						>
 							<i class="fa-solid fa-xmark text-lg"></i>
 						</button>
 					</div>
 
-		<!-- Tabs para elegir entre cámara o subir imagen -->
+					<!-- Tabs para elegir entre cámara o subir imagen -->
 					<div class="flex border-b mb-4">
-						<button type="button" class="px-4 py-2 font-medium" 
+						<button
+							type="button"
+							class="px-4 py-2 font-medium"
 							:class="mode === 'camera' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'"
-							@click="switchMode('camera')">
+							@click="switchMode('camera')"
+						>
 							<i class="fa-solid fa-camera mr-2"></i>Cámara
 						</button>
-						<button type="button" class="px-4 py-2 font-medium"
+						<button
+							type="button"
+							class="px-4 py-2 font-medium"
 							:class="mode === 'upload' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'"
-							@click="switchMode('upload')">
+							@click="switchMode('upload')"
+						>
 							<i class="fa-solid fa-upload mr-2"></i>Subir Imagen
+						</button>
+						<button
+							type="button"
+							class="px-4 py-2 font-medium"
+							:class="mode === 'manual' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'"
+							@click="switchMode('manual')"
+						>
+							<i class="fa-solid fa-user-check mr-2"></i>Individual
 						</button>
 					</div>
 
 					<!-- Vista de cámara -->
 					<div class="flex justify-center" x-show="mode === 'camera'">
-						<img id="cameraPreview" class="rounded border w-auto max-h-96" x-bind:src="imgSrc" />
+						<img
+							id="cameraPreview"
+							class="rounded border w-auto max-h-96"
+							x-bind:src="imgSrc"
+						/>
 					</div>
 
 					<!-- Vista de subir imagen -->
-					<div x-show="mode === 'upload'" class="flex flex-col items-center gap-4">
-						<label class="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors">
-							<input type="file" accept="image/*" class="hidden" @change="handleFileSelect($event)" />
+					<div
+						x-show="mode === 'upload'"
+						class="flex flex-col items-center gap-4"
+					>
+						<label
+							class="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors"
+						>
+							<input
+								type="file"
+								accept="image/*"
+								class="hidden"
+								@change="handleFileSelect($event)"
+							/>
 							<div x-show="!uploadedImage">
-								<i class="fa-solid fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-								<p class="text-gray-600">Haz clic para seleccionar una imagen</p>
+								<i
+									class="fa-solid fa-cloud-upload-alt text-4xl text-gray-400 mb-2"
+								></i>
+								<p class="text-gray-600">
+									Haz clic para seleccionar una imagen
+								</p>
 								<p class="text-gray-400 text-sm">o arrastra y suelta aquí</p>
 							</div>
-							<img x-show="uploadedImage" :src="uploadedImagePreview" class="max-h-64 rounded" />
+							<img
+								x-show="uploadedImage"
+								:src="uploadedImagePreview"
+								class="max-h-64 rounded"
+							/>
 						</label>
 						<p x-show="uploadedImage" class="text-green-600 text-sm">
-							<i class="fa-solid fa-check-circle mr-1"></i>Imagen cargada correctamente
+							<i class="fa-solid fa-check-circle mr-1"></i>Imagen cargada
+							correctamente
+						</p>
+					</div>
+					<div x-show="mode === 'manual'" class="flex flex-col gap-4">
+						<div>
+							<label class="form-label">Estudiante</label>
+							<select style="width: 100%;" class="form-control" x-ref="manualStudentSelect" x-model="selectedStudentId" id="student_id"
+								x-init="$nextTick(() => { const select = $refs.manualStudentSelect; $(select).select2({ placeholder: 'Seleccione estudiante', allowClear: true, dropdownParent: $('#modal_container') }); $(select).on('change', function () { selectedStudentId = $(this).val() || ''; }); })">
+								<option value="">Selecciona un estudiante</option>
+								<template
+									x-for="student in availableStudents()"
+									:key="student.id"
+								>
+									<option :value="student.id" x-text="student.name"></option>
+								</template>
+							</select>
+						</div>
+						<p
+							class="text-sm text-gray-600"
+							x-show="courseId && availableStudents().length === 0"
+						>
+							No hay estudiantes matriculados en el curso seleccionado.
 						</p>
 					</div>
 
 					<div class="flex justify-end mt-4 gap-2">
-						<button class="btn btn-secondary" @click="closePreviewModal()">Cancelar</button>
-						<button class="btn btn-primary" @click="registerAttendance()" x-bind:disabled="mode === 'upload' && !uploadedImage">
-							<i class="fa-solid" x-bind:class="loading ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+						<button class="btn btn-secondary" @click="closePreviewModal()">
+							Cancelar
+						</button>
+						<button
+							class="btn btn-primary"
+							@click="registerAttendance()"
+							x-bind:disabled="(mode === 'upload' && !uploadedImage) || (mode === 'manual' && !selectedStudentId)"
+						>
+							<i
+								class="fa-solid"
+								x-bind:class="loading ? 'fa-spinner fa-spin' : 'fa-check'"
+							></i>
 							Registrar Asistencia
 						</button>
 					</div>
@@ -114,20 +195,29 @@
 			</div>
 		</div>
 	</div>
-	<h2 class="text-xl font-bold flex items-center gap-2" x-data="downloadHandler">
+	<h2
+		class="text-xl font-bold flex items-center gap-2"
+		x-data="downloadHandler"
+	>
 		<i class="fa-solid fa-calendar-check"></i>
 		Registro de Asistencia
 		<button class="btn btn-primary-outline btn-sm" @click="download()">
 			<i class="fa-solid fa-file-excel text-sm"></i> Descargar Asistencia
 		</button>
 	</h2>
-	<form class="bg-white rounded-lg shadow p-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+	<form
+		class="bg-white rounded-lg shadow p-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4"
+	>
 		<div>
 			<label for="course" class="form-label">Curso</label>
 			<select name="course" id="course" class="form-control">
 				<option value="">Todos los cursos</option>
 				{% for course in courses %}
-				<option value="{{ course.id }}" {% if course.id == course_id %}selected{% endif %}>{{ course.name }}</option>
+				<option
+					value="{{ course.id }}"
+					{% if course.id == course_id %}selected{% endif %} >
+					{{ course.name }}
+				</option>
 				{% endfor %}
 			</select>
 		</div>
@@ -136,17 +226,34 @@
 			<select name="student" id="student" class="form-control">
 				<option value="">Todos los estudiantes</option>
 				{% for student in students %}
-				<option value="{{ student.id }}" {% if student.id == student_id %}selected{% endif %}>{{ student.name }}</option>
+				<option
+					value="{{ student.id }}"
+					{% if student.id == student_id %}selected{% endif %}
+				>
+					{{ student.name }}
+				</option>
 				{% endfor %}
 			</select>
 		</div>
 		<div>
 			<label for="begin_date" class="form-label">Fecha de inicio</label>
-			<input type="date" name="begin_date" id="begin_date" class="form-control" value="{{ begin_date.strftime('%Y-%m-%d') if begin_date else '' }}" />
+			<input
+				type="date"
+				name="begin_date"
+				id="begin_date"
+				class="form-control"
+				value="{{ begin_date.strftime('%Y-%m-%d') if begin_date else '' }}"
+			/>
 		</div>
 		<div>
 			<label for="end_date" class="form-label">Fecha de fin</label>
-			<input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}" />
+			<input
+				type="date"
+				name="end_date"
+				id="end_date"
+				class="form-control"
+				value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}"
+			/>
 		</div>
 		<div class="flex justify-end items-end">
 			<button type="submit" class="btn btn-primary">Filtrar</button>
@@ -189,26 +296,50 @@
 		{% endif %}
 	</div>
 </div>
+<script id="course-students-data" type="application/json">
+	{{ course_students | tojson }}
+</script>
 <script>
-	document.addEventListener('alpine:init', () => {
-    Alpine.data('attendance', () => ({
+	document.addEventListener("alpine:init", () => {
+		Alpine.data("attendance", () => ({
 			courseId: null,
-			type: 'Ingreso',
+			type: "Ingreso",
 			loading: false,
 			showModal: false,
 			imgSrc: null,
-			mode: 'camera', // 'camera' o 'upload'
+			mode: "camera", // 'camera' o 'upload'
 			uploadedImage: null,
 			uploadedImagePreview: null,
+			selectedStudentId: "",
+			courseStudents: JSON.parse(
+				document.getElementById("course-students-data").textContent,
+			),
+			availableStudents() {
+				return this.courseId ? this.courseStudents[this.courseId] || [] : [];
+			},
+			syncSelectedStudent() {
+				if (
+					!this.availableStudents().some(
+						(student) => student.id === this.selectedStudentId,
+					)
+				) {
+					this.selectedStudentId = "";
+				}
+			},
 			switchMode(newMode) {
 				this.mode = newMode;
-				if (newMode === 'camera') {
-					this.imgSrc = '/attendance/camera_feed';
+				if (newMode === "camera") {
+					this.imgSrc = "/attendance/camera_feed";
 					this.uploadedImage = null;
 					this.uploadedImagePreview = null;
+					this.selectedStudentId = " ";
 				} else {
-					this.imgSrc = '';
-					fetch('/attendance/stop_camera', { method: 'POST' });
+					this.imgSrc = "";
+					if (newMode !== "upload") {
+						this.uploadedImage = null;
+						this.uploadedImagePreview = null;
+					}
+					fetch("/attendance/stop_camera", { method: "POST" });
 				}
 			},
 			handleFileSelect(event) {
@@ -220,112 +351,139 @@
 			},
 			registerAttendance() {
 				if (!this.courseId) {
-					toastr.error('Por favor, selecciona un curso.');
+					toastr.error("Por favor, selecciona un curso.");
 					return;
 				}
 
-				if (this.mode === 'upload' && !this.uploadedImage) {
-					toastr.error('Por favor, selecciona una imagen.');
+				if (this.mode === "upload" && !this.uploadedImage) {
+					toastr.error("Por favor, selecciona una imagen.");
+					return;
+				}
+				if (this.mode === "manual" && !this.selectedStudentId) {
+					toastr.error("Por favor, selecciona un estudiante.");
 					return;
 				}
 
 				this.loading = true;
 				let fetchPromise;
 
-				if (this.mode === 'upload') {
+				if (this.mode === "upload") {
 					// Enviar imagen subida
 					const formData = new FormData();
-					formData.append('image', this.uploadedImage);
-					formData.append('state', this.type);
+					formData.append("image", this.uploadedImage);
+					formData.append("state", this.type);
 
 					fetchPromise = fetch(`/attendance/take-upload/${this.courseId}`, {
-						method: 'POST',
-						body: formData
+						method: "POST",
+						body: formData,
+					});
+				} else if (this.mode === "manual") {
+					fetchPromise = fetch(`/attendance/take-manual/${this.courseId}`, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							state: this.type,
+							student_id: this.selectedStudentId,
+						}),
 					});
 				} else {
 					// Usar cámara (comportamiento original)
 					fetchPromise = fetch(`/attendance/take/${this.courseId}`, {
-						method: 'POST',
+						method: "POST",
 						headers: {
-							'Content-Type': 'application/json'
+							"Content-Type": "application/json",
 						},
-						body: JSON.stringify({ state: this.type })
+						body: JSON.stringify({ state: this.type }),
 					});
 				}
 
 				this.closePreviewModal();
 
-				fetchPromise.then(async res => {
-					this.loading = false;
-					if (res.ok) {
-						return {
-							fileName: res.headers.get('Content-Disposition').split('filename=')[1],
-							blob: await res.blob()
-						};
-					} else {
-						const resp = await res.json();
-						if (resp.error) {
-							throw new Error(resp.error);
-						} else {
-							throw new Error('Error al registrar asistencia.');
+				fetchPromise
+					.then(async (res) => {
+						this.loading = false;
+						if (!res.ok) {
+							const resp = await res.json();
+							if (resp.error) {
+								throw new Error(resp.error);
+							}
+							throw new Error("Error al registrar asistencia.");
 						}
 
-					}
-				}).then(({ fileName, blob }) => {
-					/* const url = window.URL.createObjectURL(blob);
+						const contentType = res.headers.get("Content-Type") || "";
+						if (contentType.includes("application/json")) {
+							return await res.json();
+						}
+
+						return await res.blob();
+					})
+					.then(() => {
+						/* const url = window.URL.createObjectURL(blob);
 					const a = document.createElement('a');
 					a.href = url;
 					a.download = fileName;
 					document.body.appendChild(a);
 					a.click();
 					a.remove(); */
-					toastr.success('Asistencia registrada ');
-					//window.location.reload()
-					this.openPreviewModal();
-				}).catch(error => {
-					toastr.error(error.message || 'Error al registrar asistencia.');
-					this.openPreviewModal()
-				})
-				
+						toastr.success("Asistencia registrada ");
+						//window.location.reload()
+						this.openPreviewModal();
+					})
+					.catch((error) => {
+						toastr.error(error.message || "Error al registrar asistencia.");
+						this.openPreviewModal();
+					});
 			},
 			openPreviewModal() {
 				if (!this.courseId) {
-					toastr.error('Por favor, selecciona un curso.');
+					toastr.error("Por favor, selecciona un curso.");
 					return;
 				}
-				this.mode = 'camera';
+				this.mode = "camera";
 				this.uploadedImage = null;
 				this.uploadedImagePreview = null;
-				this.imgSrc = '/attendance/camera_feed';
+				this.selectedStudentId = "";
+				this.imgSrc = "/attendance/camera_feed";
 
 				this.showModal = true;
 			},
 			async closePreviewModal() {
-				this.imgSrc = '';
+				this.imgSrc = "";
 				this.showModal = false;
 				this.uploadedImage = null;
 				this.uploadedImagePreview = null;
-				await fetch('/attendance/stop_camera', { method: 'POST' })
-			}
-		}))
+				this.selectedStudentId = "";
+				await fetch("/attendance/stop_camera", { method: "POST" });
+			},
+		}));
 
-		Alpine.data('downloadHandler', () => ({
+		Alpine.data("downloadHandler", () => ({
 			download() {
-				const url = '/download-attendance';
-				const courseId = document.getElementById('course').value;
-				const studentId = document.getElementById('student').value;
-				const beginDate = document.getElementById('begin_date').value;
-				const endDate = document.getElementById('end_date').value;
+				const url = "/download-attendance";
+				const courseId = document.getElementById("course").value;
+				const studentId = document.getElementById("student").value;
+				const beginDate = document.getElementById("begin_date").value;
+				const endDate = document.getElementById("end_date").value;
 
 				const params = new URLSearchParams();
-				if (courseId) params.append('course', courseId);
-				if (beginDate) params.append('begin_date', beginDate);
-				if (endDate) params.append('end_date', endDate);
-				if (studentId) params.append('student', studentId);
+				if (courseId) params.append("course", courseId);
+				if (beginDate) params.append("begin_date", beginDate);
+				if (endDate) params.append("end_date", endDate);
+				if (studentId) params.append("student", studentId);
 
 				window.location.href = `${url}?${params.toString()}`;
-			}
+			},
 		}));
-	})
+	});
+</script>
+<script type="module">
+	$(document).ready(function() {
+		$('#student_id').select2({
+			placeholder: 'Seleccione estudiantes',
+			dropdownParent: $('#modal_container'),
+		});
+	});
 </script>
 {% endblock %}

@@ -13,6 +13,18 @@
 			Agregar nuevo
 		</button>
 	</form>
+	<form action="/users/import" method="POST" enctype="multipart/form-data" class="bg-white rounded p-3 flex flex-col sm:flex-row sm:items-end gap-3">
+		<div class="flex-1">
+			<label for="excel_file" class="form-label">Carga masiva de usuarios (Excel)</label>
+			<input type="file" id="excel_file" name="excel_file" class="form-control w-full" accept=".xlsx,.xls" required />
+			<p class="text-xs text-gray-500 mt-1">Columnas mínimas: nombre/name y correo/email. Opcionales: código, rol.</p>
+		</div>
+		<div>
+			<button type="submit" class="btn btn-success whitespace-nowrap">
+				<i class="fa-solid fa-file-import"></i> Importar Excel
+			</button>
+		</div>
+	</form>
 	<div class="bg-white rounded overflow-hidden p-1">
 		<table class="table">
 			<thead>
